@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns:th="httpl://www.thymeleaf.org">
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<title>File Name Extension</title>
+
+	<link rel="shortcut icon" href="img/favicon.ico">
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+	<link id="theme" href="/css/light.css" rel="stylesheet">
+</head>
+
+<body>
+	<div class="main d-flex justify-content-center w-100">
+		<main class="content d-flex p-0">
+			<div class="container d-flex flex-column">
+				<div class="row h-100">
+					<div class="col-sm-10 col-md-8 col-lg-6 mx-auto d-table h-100">
+						<div class="d-table-cell align-middle">
+
+							<div class="text-center mt-4">
+								<h1 class="h2">파일 확장자 차단</h1>
+								<p class="lead">차단할 확장자 선택 및 추가</p>
+							</div>
+
+							<div class="card">
+								<div class="card-body">
+									<div class="m-sm-4">
+										<div class="form-group">
+											<label class="form-label w-100">파일 업로드 테스트</label>
+											<input type="file" id="uploadFile" style="width: calc(100% - 55px)">
+											<button class="btn btn-primary" type="button" style="width: 50px" onclick="upload()">Up</button>
+										</div>
+										
+										
+										<div class="form-group">
+											<label>고정 확장자</label>
+											<div>
+												<label class="form-check form-check-inline" th:each="def : ${defList}">
+		            								<input class="form-check-input" name="defFn" type="checkbox" th:value="${def.fn}" th:checked="${def.useYn} == 'Y'">
+		            								<span class="form-check-label" th:text="${def.fn}"></span>
+		          								</label>
+											</div>
+										</div>
+										<div class="form-group">
+											<label>커스텀 확장자</label>
+											<input class="form-control form-control-lg" id="addExt" type="text" placeholder="입력 후 Enter를 눌러주세요." onKeypress="javascript:if(event.keyCode==13) {addExtension()}"/>
+											<table class="table table-responsive">
+												<thead>
+													<tr>
+														<th width="90%">Name</th>
+														<th width="9%"></th>
+													</tr>
+												</thead>
+												<tbody id="addList">
+													<tr th:each="add: ${addList}">
+														<td th:text="${add.fn}"></td>
+														<td><input type="button" class="btn btn-secondary" th:onclick="removeRow(this, [[${add.fn}]])" value="─"></td>
+													</tr>
+												</tbody>
+											</table>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	</div>
+	
+	<script src="js/app.js"></script>
+	<script th:line="javascript">
+	let defFnList = document.getElementsByName("defFn");
+	defFnList.forEach((e) => {
+		e.addEventListener('change', function() {
+			console.log({
+	        	'fn': this.value,
+	        	'useYn': this.checked ? 'Y' : 'N'
+	        })
+			$.ajax({
+		        url: '/ajaxUpdateDef',
+		        type: 'POST',
+		        data: JSON.stringify({
+		        	'fn': this.value,
+		        	'useYn': this.checked ? 'Y' : 'N'
+		        }),
+		        contentType: 'application/json; charset=UTF-8',
+		        success: (data) => {
+		        	if(data.msg != 'success') {
+		        		alert("오류가 발생했습니다.");
+		        	}
+		        }
+			});
+		})
+	})
+	
+	let addExt = document.getElementById("addExt");
+	function addExtension() {
+		if(addExt.value.trim().length != 0) {
+			var addFnExt = addExt.value.trim().toLowerCase(); 
+			$.ajax({
+		        url: '/ajaxInsertAdd',
+		        type: 'POST',
+		        data: JSON.stringify({
+		        	'fn': addFnExt
+		        }),
+		        contentType: 'application/json; charset=UTF-8',
+		        success: (data) => {
+		        	if(data.msg == 'success') {
+						$('#addList').prepend(`<tr><td>${addFnExt}</td><td><input type="button" class="btn btn-secondary" onclick="removeRow(this, '${addFnExt}')" value="─"></td></tr>`);
+		        	} else {
+		        		alert("이미 추가된 확장자입니다.");
+		        	}
+			       	addExt.value = '';
+		        }
+			});
+		}
+	}
+	
+	function removeRow(obj, addFnExt) {
+		$.ajax({
+	        url: '/ajaxDeleteAdd',
+	        type: 'POST',
+	        data: JSON.stringify({
+	        	'fn': addFnExt
+	        }),
+	        contentType: 'application/json; charset=UTF-8',
+	        success: (data) => {
+	        	if(data.msg == 'success') {
+					$(obj).parents('tr').remove();
+	        	} else {
+	        		alert("오류가 발생했습니다.");
+	        	}
+	        }
+		});
+	}
+	
+	let fileInput = document.getElementById("uploadFile");
+	function upload() {
+		if(fileInput.files.length != 0) {
+			var fileNm = fileInput.files[0].name;
+			var fileExt = fileNm.substr(fileNm.lastIndexOf('.')+1);
+			if(fileExt == '') {
+				alert("확장자가 없는 파일은 업로드 할 수 없습니다.");
+			} else {
+				$.ajax({
+			        url: '/ajaxUploadChk',
+			        type: 'POST',
+			        data: JSON.stringify({
+			        	'fn': fileExt
+			        }),
+			        contentType: 'application/json; charset=UTF-8',
+			        success: (data) => {
+			        	if(data.msg == 'success') {
+							alert("업로드에 성공하였습니다.");
+			        	} else {
+			        		alert("업로드 제한 확장자입니다.");
+			        	}
+			        }
+				});
+			}
+		}
+	}
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,20 @@
+server:
+  # [Port]
+  port: 1582
+
+spring:
+  # [DB:SQLite]
+  datasource:
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite:database/fn.db
+    username: ''
+    password: ''
+
+# [MyBatis]
+mybatis:
+  # *_SQL.xml
+  mapper-locations: mybatis-mapper/*_SQL.xml
+  # PackageDirectoryAlias
+  type-aliases-package: ml.choi4u.code.model
+  # ModelPropertyCamelCase
+  configuration.map-underscore-to-camel-case: true

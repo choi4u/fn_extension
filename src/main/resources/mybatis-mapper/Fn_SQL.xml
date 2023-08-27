@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ml.choi4u.code.repository.FnMapper">
+
+<select id="selectFnExtension" resultType="FnVO">
+	SELECT		*
+	FROM 		EXTENSION
+	<choose>
+		<when test="fn != '' and fn != null">
+	WHERE		fn = #{fn}
+		</when>
+		<otherwise>
+	WHERE		DEF = #{def}
+		</otherwise>
+	</choose>
+	ORDER BY	CREATE_DATE DESC
+</select>
+
+<update id="updateFnDef">
+	UPDATE		EXTENSION
+	SET			USE_YN = #{useYn}
+	WHERE		FN = #{fn}
+</update>
+
+<insert id="insertFnAdd">
+	INSERT INTO EXTENSION(FN, DEF, USE_YN, CREATE_DATE)
+	VALUES (
+		#{fn},
+		"N",
+		"Y",
+		(SELECT datetime('now', 'localtime'))
+	)
+</insert>
+
+<update id="deleteFnAdd">
+	DELETE
+	FROM		EXTENSION
+	WHERE		FN = #{fn}
+	AND			DEF = 'N'
+</update>
+
+<select id="selectFnExtensionChk" resultType="FnVO">
+	SELECT	*
+	FROM	EXTENSION
+	WHERE
+		(
+			FN = #{fn}
+			AND DEF = 'Y'
+			AND USE_YN = 'Y'
+		)
+	OR	
+		(
+			FN = #{fn}
+			AND DEF = 'N'
+		)
+</select>
+
+</mapper>
