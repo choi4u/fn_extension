@@ -50,7 +50,11 @@ public class FnController {
 	public Map<String, Object> ajaxInsertAdd(@RequestBody FnVO vo) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		try {
-			result.put("msg", (fnService.insertFnAdd(vo) == 1) ? "success" : "");
+			if(fnService.selectFnExtension(FnVO.builder().def("N").build()).size() < 200) {
+				result.put("msg", (fnService.insertFnAdd(vo) == 1) ? "success" : "");
+			} else {
+				result.put("msg", "full");
+			}
 		} catch(Exception e) {
 			e.printStackTrace();
 		}

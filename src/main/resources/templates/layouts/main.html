@@ -46,8 +46,8 @@
 											</div>
 										</div>
 										<div class="form-group">
-											<label>커스텀 확장자</label>
-											<input class="form-control form-control-lg" id="addExt" type="text" placeholder="입력 후 Enter를 눌러주세요." onKeypress="javascript:if(event.keyCode==13) {addExtension()}"/>
+											<label id="addTotal" th:text="|커스텀 확장자 ${addList.size()}/200|"></label>
+											<input class="form-control form-control-lg" id="addExt" type="text" maxlength="20" placeholder="입력 후 Enter를 눌러주세요." onKeypress="javascript:if(event.keyCode==13) {addExtension()}"/>
 											<table class="table table-responsive">
 												<thead>
 													<tr>
@@ -113,6 +113,9 @@
 		        success: (data) => {
 		        	if(data.msg == 'success') {
 						$('#addList').prepend(`<tr><td>${addFnExt}</td><td><input type="button" class="btn btn-secondary" onclick="removeRow(this, '${addFnExt}')" value="─"></td></tr>`);
+		        		$('#addTotal').html(`커스텀 확장자 ${$("#addList").children().length}/200`);
+		        	} else if(data.msg == 'full') {
+		        		alert("더 이상 추가할 수 없습니다.");
 		        	} else {
 		        		alert("이미 추가된 확장자입니다.");
 		        	}
@@ -133,6 +136,7 @@
 	        success: (data) => {
 	        	if(data.msg == 'success') {
 					$(obj).parents('tr').remove();
+					$('#addTotal').html(`커스텀 확장자 ${$("#addList").children().length}/200`);
 	        	} else {
 	        		alert("오류가 발생했습니다.");
 	        	}
@@ -145,7 +149,7 @@
 		if(fileInput.files.length != 0) {
 			var fileNm = fileInput.files[0].name;
 			var fileExt = fileNm.substr(fileNm.lastIndexOf('.')+1);
-			if(fileExt == '') {
+			if(fileExt == '' || fileNm.lastIndexOf('.') == -1) {
 				alert("확장자가 없는 파일은 업로드 할 수 없습니다.");
 			} else {
 				$.ajax({
@@ -164,6 +168,7 @@
 			        }
 				});
 			}
+			fileInput.value = '';
 		}
 	}
 	</script>
